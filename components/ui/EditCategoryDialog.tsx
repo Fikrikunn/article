@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import axios from "axios"
+import axios, { AxiosError } from "axios" // Added AxiosError import
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -12,6 +12,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+
+// Define API error response interface
+interface ApiErrorResponse {
+  message?: string;
+  statusCode?: number;
+  error?: string;
+}
 
 interface EditCategoryDialogProps {
   categoryId: string
@@ -39,7 +46,7 @@ export function EditCategoryDialog({
     }
   }, [open, initialName])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     
     if (!categoryName.trim()) {
@@ -78,9 +85,17 @@ export function EditCategoryDialog({
       // Call the success callback to refresh categories
       if (onSuccess) onSuccess()
       
-    } catch (err: any) {
-      console.error("Failed to update category:", err)
-      setError(err.response?.data?.message || "Failed to update category. Please try again.")
+    } catch (err: unknown) {
+      // Properly type the error
+      const axiosError = err as AxiosError<ApiErrorResponse>
+      console.error("Failed to update category:", axiosError)
+      
+      // Handle the error message more safely
+      const errorMessage = axiosError.response?.data?.message || 
+                          axiosError.message || 
+                          "Failed to update category. Please try again."
+      
+      setError(errorMessage)
     } finally {
       setIsSubmitting(false)
     }

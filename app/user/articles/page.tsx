@@ -4,7 +4,6 @@ import Navbar from "@/components/ui/Navbar";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Search } from "lucide-react";
 import Footer from "@/components/ui/Footer";
 import { ArticleType } from "@/types/types";

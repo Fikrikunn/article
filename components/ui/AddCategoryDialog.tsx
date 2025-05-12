@@ -1,9 +1,8 @@
-
 "use client"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import axios from "axios"
+import axios, { AxiosError } from "axios" // Added AxiosError import
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -17,6 +16,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { PlusCircle } from "lucide-react"
 
+// Define API error response interface
+interface ApiErrorResponse {
+  message?: string;
+  statusCode?: number;
+  error?: string;
+}
+
 interface AddCategoryDialogProps {
   onSuccess?: () => void
 }
@@ -27,7 +33,7 @@ export function AddCategoryDialog({ onSuccess }: AddCategoryDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     
     if (!categoryName.trim()) {
@@ -67,9 +73,17 @@ export function AddCategoryDialog({ onSuccess }: AddCategoryDialogProps) {
       // Call the success callback to refresh categories
       if (onSuccess) onSuccess()
       
-    } catch (err: any) {
-      console.error("Failed to create category:", err)
-      setError(err.response?.data?.message || "Failed to create category. Please try again.")
+    } catch (err: unknown) {
+      // Properly type the error
+      const axiosError = err as AxiosError<ApiErrorResponse>
+      console.error("Failed to create category:", axiosError)
+      
+      // Handle the error message more safely
+      const errorMessage = axiosError.response?.data?.message || 
+                          axiosError.message || 
+                          "Failed to create category. Please try again."
+      
+      setError(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -85,7 +99,6 @@ export function AddCategoryDialog({ onSuccess }: AddCategoryDialogProps) {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add Category</DialogTitle>
-
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
@@ -99,6 +112,7 @@ export function AddCategoryDialog({ onSuccess }: AddCategoryDialogProps) {
                 onChange={(e) => setCategoryName(e.target.value)}
                 className="col-span-3"
                 placeholder="Input Category"
+                autoFocus
               />
             </div>
             {error && (

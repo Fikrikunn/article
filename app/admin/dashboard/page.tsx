@@ -1,7 +1,6 @@
 "use client"
 
 import Sidebar from "@/components/ui/SideBar";
-import Navbar from "@/components/ui/Navbar";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { usePathname, useRouter } from "next/navigation";
@@ -82,10 +81,17 @@ export default function Dashboard() {
     );
     alert("Article deleted successfully.");
     fetchArticles();
-  } catch (error: any) {
-    console.error("Failed to delete article:", error.response?.data || error.message);
-    alert("Failed to delete article.");
+  } catch (error: unknown) {
+  if (error instanceof Error) {
+    // Jika error dari axios dan memiliki response
+    const axiosError = error as { response?: { data?: any }; message: string };
+    console.error("Failed to delete article:", axiosError.response?.data || axiosError.message);
+  } else {
+    console.error("Failed to delete article:", error);
   }
+  alert("Failed to delete article.");
+}
+
 };
 
 

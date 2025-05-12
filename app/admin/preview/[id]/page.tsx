@@ -1,8 +1,6 @@
 
-import NavbarDetail from "@/components/ui/NavbarDetail";
 import { ArticleType } from "@/types/types";
 import axios from "axios";
-import ArticleCard from "@/components/ui/ArticleCard";
 import Footer from "@/components/ui/Footer";
 import ArticleCardAdmin from "@/components/ArticleCardAdmin";
 import NavbarAdmin from "@/components/ui/NavbarAdmin";

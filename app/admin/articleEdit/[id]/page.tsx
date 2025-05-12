@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
+
 interface Article {
   id: string;
   title: string;
@@ -35,18 +36,40 @@ interface Article {
   };
 }
 
+interface ArticleFormData {
+  title: string;
+  content: string;
+  categoryId: string;
+  imageUrl?: string;
+}
+
+interface ApiErrorResponse {
+  message: string;
+  statusCode?: number;
+  error?: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  userId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 const ArticleEdit = () => {
   const { id } = useParams()
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null) 
 
   const [article, setArticle] = useState<Article | null>(null)
-  const [categories, setCategories] = useState([])
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [newImage, setNewImage] = useState<File | null>(null) 
-  const [imagePreview, setImagePreview] = useState<string | null>(null) 
-  const { register, handleSubmit, setValue } = useForm()
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+const { register, handleSubmit, setValue } = useForm<ArticleFormData>()
+
 
   useEffect(() => {
     fetchArticle()
@@ -124,18 +147,16 @@ const ArticleEdit = () => {
   }
 }
 
-const onSubmit = async (formData: any) => {
+const onSubmit = async (formData: ArticleFormData): Promise<void> => {
   try {
-    // Get auth token
     const token = localStorage.getItem('token');
-    
+
     if (!token) {
       alert("You are not authenticated. Please login again.");
       router.push('/');
       return;
     }
 
-    
     const role = localStorage.getItem('role');
     if (role !== 'Admin') {
       const userId = localStorage.getItem('userId');
@@ -145,7 +166,7 @@ const onSubmit = async (formData: any) => {
         return;
       }
     }
-    
+
     // Define payload
     let payload = {
       title: formData.title,
@@ -153,19 +174,17 @@ const onSubmit = async (formData: any) => {
       categoryId: formData.categoryId,
       imageUrl: article?.imageUrl || null
     };
-    
-    // If we have a new image, upload it first using the dedicated upload endpoint
+
+    // Upload new image if needed
     if (newImage) {
       try {
         console.log("Uploading new image:", newImage.name);
-        
-        // Create FormData for image upload only
+
         const imageFormData = new FormData();
-        imageFormData.append("image", newImage);  // Use "image" as the field name like in ArticlesCreate
-        
-        // Upload the image to the dedicated upload endpoint
+        imageFormData.append("image", newImage);
+
         const uploadResponse = await axios.post(
-          "https://test-fe.mysellerpintar.com/api/upload",  
+          "https://test-fe.mysellerpintar.com/api/upload",
           imageFormData,
           {
             headers: {
@@ -173,57 +192,58 @@ const onSubmit = async (formData: any) => {
             }
           }
         );
-        
-        // Get the image URL from the response
+
         const imageUrl = uploadResponse.data.imageUrl;
         console.log("Image uploaded successfully, got URL:", imageUrl);
-        
-        // Update the payload with the new image URL
         payload.imageUrl = imageUrl;
-      } catch (uploadError) {
-        console.error("Failed to upload image:", uploadError);
+
+      } catch (uploadError: unknown) {
+        const err = uploadError as AxiosError<ApiErrorResponse>;
+        console.error("Failed to upload image:", err.response?.data || err.message);
         alert("Failed to upload image. Please try again.");
-        return;  
+        return;
       }
     }
-    
+
+    // Update article
     try {
-  console.log("Updating article with payload:", payload);
-  
-  const response = await axios.put(
-    `https://test-fe.mysellerpintar.com/api/articles/${id}`,
-    payload,
-    {
-      headers: {
-        'Authorization': `${token}`,
-        'Content-Type': 'application/json'
-      }
+      console.log("Updating article with payload:", payload);
+
+      const response = await axios.put(
+        `https://test-fe.mysellerpintar.com/api/articles/${id}`,
+        payload,
+        {
+          headers: {
+            'Authorization': `${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log("Article update successful:", response.data);
+
+      const updatedArticleResponse = await axios.get(
+        `https://test-fe.mysellerpintar.com/api/articles/${id}`,
+        {
+          headers: {
+            'Authorization': `${token}`
+          }
+        }
+      );
+
+      console.log("Final article state after update:", updatedArticleResponse.data);
+      setArticle(updatedArticleResponse.data);
+
+      alert("Article updated successfully!");
+      router.push("/admin/dashboard");
+
+    } catch (error: unknown) {
+      const apiError = error as AxiosError<ApiErrorResponse>;
+      console.error("API Error:", apiError.response?.data || apiError.message);
+      alert(`Failed to update article: ${apiError.response?.data?.message || apiError.message}`);
     }
-  );
-  
-  console.log("Article update successful:", response.data);
-  
-  const updatedArticleResponse = await axios.get(
-    `https://test-fe.mysellerpintar.com/api/articles/${id}`,
-    {
-      headers: {
-        'Authorization': `${token}`
-      }
-    }
-  );
-  
-  console.log("Final article state after update:", updatedArticleResponse.data);
-  setArticle(updatedArticleResponse.data);
-  
-  alert("Article updated successfully!");
-  router.push("/admin/dashboard");
-} catch (error) {
-  // Properly type the error as AxiosError
-  const apiError = error as AxiosError<any>;
-  console.error("API Error:", apiError.response?.data || apiError.message);
-  alert(`Failed to update article: ${apiError.response?.data?.message || apiError.message}`);
-}
-  } catch (err) {
+
+  } catch (err: unknown) {
     console.error("General error:", err);
     alert("An unexpected error occurred. Please try again.");
   }
@@ -315,9 +335,9 @@ const onSubmit = async (formData: any) => {
                 className="mt-1 border rounded-md px-3 py-2 w-full text-sm"
               >
                 <option value="">Select Category</option>
-                {categories.map((cat: any) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
+                {categories.map((cat: Category) => (
+  <option key={cat.id} value={cat.id}>{cat.name}</option>
+))}
               </select>
               <p className="text-xs text-gray-500 mt-1">
                 The existing category list can be seen in the <Link href="/admin/categories" className="underline text-blue-600">category menu</Link>.
