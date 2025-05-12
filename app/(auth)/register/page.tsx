@@ -7,18 +7,20 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import axios from "axios";
 
+// ✅ Update schema untuk menyertakan role
 const loginSchema = z.object({
-  username: z.string().min(1, "Please enter your username"),
-  password: z.string().min(6, "Please enter your password"),
+  username: z.string().min(1, "Username field cannot be empty"),
+  password: z.string().min(8, "Password must be at least 8 characters long"),
+  role: z.enum(["User", "Admin"], {
+    required_error: "Role is required",
+  }),
 });
 
 type LoginSchema = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const {
     register,
     handleSubmit,
@@ -27,47 +29,14 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  const router = useRouter()
-
- useEffect(() => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
-
-    if (token) {
-      if (role === "User") {
-        router.push("/user/articles");
-      } else if (role === "Admin") {
-        router.push("/admin/dashboard");
-      } else {
-        router.push("/");
-      }
-    } else {
-      router.push("/");
-    }
-  }, [router]);
-
-
   const onSubmit = async (data: LoginSchema) => {
     try {
-      const response = await axios.post("https://test-fe.mysellerpintar.com/api/auth/login", data)
-
-      console.log("Success login", data);
-
-      const { token, role } = response.data;
-
-      localStorage.setItem("token", `Bearer ${token}`);
-      localStorage.setItem("role", role);
-      localStorage.setItem("username", data.username);
-      localStorage.setItem("password", data.password);
-
-      // Redirect berdasarkan role yang dikembalikan dari server
-      if (role === "Admin") {
-        window.location.href = "/admin/dashboard";
-      } else {
-        window.location.href = "/user/articles";
-      }
+      const res = await axios.post("https://test-fe.mysellerpintar.com/api/auth/register", data);
+      console.log("Success login", res.data);
     } catch (error) {
       console.error("Login error", error);
+    } finally {
+      window.location.href = "/";
     }
   };
 
@@ -75,7 +44,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-md">
         <div className="flex justify-center mb-6">
-          <img src="logo-1d.png" alt="Logo" className="h-30 w-50" />
+          <img src="/logo-1d.png" alt="Logo" className="h-30 w-50" />
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
@@ -96,14 +65,31 @@ export default function LoginPage() {
               <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
             )}
           </div>
+          <div>
+            <Label className="mb-2">Role</Label>
+            <select
+              {...register("role")}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              defaultValue=""
+            >
+              <option value="" disabled>
+                Select role
+              </option>
+              <option value="User">User</option>
+              <option value="Admin">Admin</option>
+            </select>
+            {errors.role && (
+              <p className="text-red-500 text-sm mt-1">{errors.role.message}</p>
+            )}
+          </div>
           <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
-            Login
+            Register
           </Button>
         </form>
         <p className="text-center text-sm mt-4">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-blue-600 hover:underline">
-            Register
+          <Link href="/" className="text-blue-600 hover:underline">
+            Login
           </Link>
         </p>
       </div>
