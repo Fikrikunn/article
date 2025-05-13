@@ -168,12 +168,12 @@ const onSubmit = async (formData: ArticleFormData): Promise<void> => {
     }
 
     // Define payload
-    let payload = {
-      title: formData.title,
-      content: formData.content,
-      categoryId: formData.categoryId,
-      imageUrl: article?.imageUrl || null
-    };
+    const payload = {
+  title: formData.title,
+  content: formData.content,
+  categoryId: formData.categoryId,
+  imageUrl: article?.imageUrl || null
+};
 
     // Upload new image if needed
     if (newImage) {

@@ -3,12 +3,18 @@
 import Sidebar from "@/components/ui/SideBar";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Search } from "lucide-react";
 import { ArticleType } from "@/types/types";
 import NavbarAdmin from "@/components/ui/NavbarAdmin";
 import Link from "next/link";
+
+interface ApiErrorResponse {
+  message?: string;
+  statusCode?: number;
+  error?: string;
+}
 
 export default function Dashboard() {
   const router = useRouter();
@@ -70,28 +76,38 @@ export default function Dashboard() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+ const handleDelete = async (id: string) => {
   const confirm = window.confirm("Are you sure you want to delete this article?");
   if (!confirm) return;
 
   try {
-    const response = await axios.delete(
+    // Remove the unused response variable
+    await axios.delete(
       `https://test-fe.mysellerpintar.com/api/articles/${id}`,
       { headers: { Authorization: `${token}` } }
     );
+    
     alert("Article deleted successfully.");
     fetchArticles();
   } catch (error: unknown) {
-  if (error instanceof Error) {
-    // Jika error dari axios dan memiliki response
-    const axiosError = error as { response?: { data?: any }; message: string };
-    console.error("Failed to delete article:", axiosError.response?.data || axiosError.message);
-  } else {
-    console.error("Failed to delete article:", error);
+    if (error instanceof Error) {
+      // Use proper typing with AxiosError
+      const axiosError = error as { 
+        response?: { 
+          data?: ApiErrorResponse 
+        }; 
+        message: string 
+      };
+      
+      console.error(
+        "Failed to delete article:", 
+        axiosError.response?.data?.message || axiosError.message
+      );
+    } else {
+      console.error("Failed to delete article:", error);
+    }
+    alert("Failed to delete article.");
   }
-  alert("Failed to delete article.");
-}
-
 };
 
 

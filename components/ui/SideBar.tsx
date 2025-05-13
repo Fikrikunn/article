@@ -2,11 +2,10 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { LogOut, Newspaper, Tag } from "lucide-react";
-import clsx from "clsx"; // opsional untuk merapikan class
+import clsx from "clsx"; 
 import { useState } from "react";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,

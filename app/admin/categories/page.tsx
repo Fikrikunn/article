@@ -20,7 +20,6 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalCategories, setTotalCategories] = useState(0);
   const categoriesPerPage = 10;
   
   // For edit dialog
@@ -29,7 +28,6 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    const role = localStorage.getItem('role')
 
     if (!token) {
       router.push('/')
@@ -42,7 +40,6 @@ export default function CategoriesPage() {
     try {
       const response = await axios.get('https://test-fe.mysellerpintar.com/api/categories')
       setCategories(response.data.data)
-      setTotalCategories(response.data.data.length)
     } catch (error) {
       console.error('Failed to fetch categories:', error)
     }

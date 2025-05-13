@@ -1,5 +1,5 @@
 "use client";
-import { logout } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
@@ -8,7 +8,6 @@ import { LogOut } from 'lucide-react';
 import Link from "next/link";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,

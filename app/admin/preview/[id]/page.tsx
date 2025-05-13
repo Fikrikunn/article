@@ -28,11 +28,15 @@ import NavbarAdmin from "@/components/ui/NavbarAdmin";
 //       }
 // }
 
-type Props = {
-  params: { id: string };
-};
+interface PreviewPageProps {
+  params: {
+    id: string
+  }
+}
 
-export default async function PreviewPage({ params }: Props) {
+export default async function PreviewPage({ params }: PreviewPageProps
+
+) {
   const { id } = params;
   
   const res = await axios.get(`https://test-fe.mysellerpintar.com/api/articles/${id}`);

@@ -1477,7 +1477,6 @@ export default function UserArticlesPage() {
   useEffect(() => {
     const token = localStorage.getItem('token')
     const role = localStorage.getItem('role')
-    const storedUsername = localStorage.getItem('username')
 
     if (!token || role !== 'User') {
       router.push('/')
