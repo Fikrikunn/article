@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
@@ -28,6 +28,8 @@ export default function LoginPage() {
   });
 
   const router = useRouter()
+
+  const [showPassword, setShowPassword] = useState(false);
 
  useEffect(() => {
     const token = localStorage.getItem("token");
@@ -83,19 +85,34 @@ export default function LoginPage() {
             <Input {...register("username")} placeholder="Input username" />
             {errors.username && (
               <p className="text-red-500 text-sm mt-1">{errors.username.message}</p>
-            )}
+            )} 
           </div>
           <div>
-            <Label className="mb-2">Password</Label>
-            <Input
-              {...register("password")}
-              type="password"
-              placeholder="Input password"
-            />
-            {errors.password && (
-              <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
-            )}
-          </div>
+  <Label className="mb-2">Password</Label>
+  <Input
+    {...register("password")}
+    type={showPassword ? "text" : "password"}
+    placeholder="Input password"
+  />
+  {errors.password && (
+    <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+  )}
+
+  {/* Checkbox Show Password */}
+  <div className="flex items-center gap-2 mt-2">
+    <input
+      type="checkbox"
+      id="showPassword"
+      checked={showPassword}
+      onChange={() => setShowPassword(!showPassword)}
+      className="border-gray-300"
+    />
+    <Label htmlFor="showPassword" className="text-sm text-gray-700">
+      Show password
+    </Label>
+  </div>
+</div>
+
           <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
             Login
           </Button>
